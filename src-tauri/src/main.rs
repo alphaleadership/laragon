@@ -129,7 +129,7 @@ fn executor(cmde: &str, arg: &str) -> String {
 }
 
 fn main() {
-    tauri::Builder::default()
+    tauri::Builder::default() .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![greet,install,executor])
         
         .run(tauri::generate_context!())
