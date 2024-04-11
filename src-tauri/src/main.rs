@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::string::String;
-use std::process::Command;
+
 use std::path::Path;
 
 
@@ -36,7 +36,7 @@ fn init(_t:String)->String {
     let apps: Vec<AppInfo> = serde_json::from_str(&json_data).expect("Erreur lors de la désérialisation du JSON");
 
     // Pour chaque application, vérifier si elle est déjà installée, puis la télécharger et l'extraire si nécessaire
-    for app in apps {
+    for app in &apps {
         // Vérifier si le dossier de l'application existe déjà
         if !Path::new(&app.foldername).exists() {
             // Créer le chemin du fichier téléchargé
@@ -82,7 +82,7 @@ fn init(_t:String)->String {
             println!("L'application {} est déjà installée.", &app.app_name);
         }
     }
-    return "instal".to_string()
+    return json_data
 }
 
 
@@ -97,27 +97,41 @@ fn install(t:String)->String {
     return init(t);
 }
 // Import des modules
-
+use std::process::{Command, Output};
 #[tauri::command]
-fn exec(cmd:&str) {
-    // Exécute une commande système (remplacez "ls" par la commande de votre choix)
-    let output = Command::new(cmd)
-        .output()
-        .expect("La commande a échoué à s'exécuter");
 
-    // Affiche la sortie de la commande
-    if output.status.success() {
-        println!("Sortie : {:?}", output.stdout);
-    } else {
-        println!("Erreur : {:?}", output.stderr);
+
+fn executor(cmd: &str, arg: &str) -> String {
+    println!("Command: {}", cmd);
+
+    let output: Result<Output, _> = Command::new(cmd)
+        .arg(arg)
+        .output();
+
+    match output {
+        Ok(output) => {
+            // Affiche la sortie de la commande
+            if output.status.success() {
+                // Convertir la sortie en String
+                let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+                return stdout;
+            } else {
+                // Si la commande échoue, retourne stderr
+                let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+                return stderr;
+            }
+        }
+        Err(err) => {
+            // Si une erreur se produit lors de l'exécution de la commande
+            return format!("Erreur: {}", err);
+        }
     }
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![install])
-        .invoke_handler(tauri::generate_handler![exec])
+        .invoke_handler(tauri::generate_handler![greet,install,executor])
+        
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

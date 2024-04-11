@@ -53,8 +53,10 @@ import Greet from "./components/Greet.vue";
         >rust-analyzer</a
       >
     </p>
-
-    <Greet />
+    <Suspense>
+      <Greet />
+    </Suspense>
+    
   </div>
 </template>
 
