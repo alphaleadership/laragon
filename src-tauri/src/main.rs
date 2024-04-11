@@ -101,10 +101,10 @@ use std::process::{Command, Output};
 #[tauri::command]
 
 
-fn executor(cmd: &str, arg: &str) -> String {
-    println!("Command: {}", cmd);
+fn executor(cmde: &str, arg: &str) -> String {
+    println!("Command: {}", cmde);
 
-    let output: Result<Output, _> = Command::new(cmd)
+    let output: Result<Output, _> = Command::new(cmde)
         .arg(arg)
         .output();
 
